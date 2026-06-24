@@ -1,0 +1,12 @@
+{
+  "name": "Warehouse SaaS ERP",
+  "short_name": "Warehouse ERP",
+  "description": "Arabic and English platform for warehouse operations.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090d1a",
+  "theme_color": "#0f172a",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [{ "src": "/pwa-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
