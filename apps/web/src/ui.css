@@ -1,1 +1,1 @@
-.topbar{display:flex}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;border-radius:26px;padding:14px 16px;margin-bottom:18px}.glass{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07)}.brand{display:flex;align-items:center;gap:12px}.mark{width:46px;height:46px;display:grid;place-items:center;border-radius:16px;background:#6366f1;font-weight:900}.view-switch{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}
