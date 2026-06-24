@@ -2,8 +2,8 @@ import { Schema, model, Types } from 'mongoose';
 
 const schema = new Schema({
   tenantId: { type: Types.ObjectId, ref: 'Tenant', required: true, index: true },
-  productId: { type: Types.ObjectId, ref: 'Product', required: true, index: true },
-  storageId: { type: Types.ObjectId, ref: 'Storage', required: true, index: true },
+  productId: { type: Types.ObjectId, ref: 'Product', index: true },
+  storageId: { type: Types.ObjectId, ref: 'Storage', index: true },
   movementType: { type: String, required: true },
   quantity: { type: Number, required: true },
   beforeQty: { type: Number, default: 0 },
