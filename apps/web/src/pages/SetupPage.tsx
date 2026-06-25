@@ -6,7 +6,8 @@ export function SetupPage() {
   const [done, setDone] = useState(false);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    await apiPost('/companies/setup', form);
+    const tenant = await apiPost('/tenants', { name: form.companyName, slug: form.slug, status: 'trial' });
+    await apiPost('/users', { tenantId: tenant.data?._id, name: form.name, email: form.email, passwordHash: 'change-me' });
     setDone(true);
   }
   return (
@@ -16,7 +17,7 @@ export function SetupPage() {
         {['companyName', 'slug', 'name', 'email'].map((field) => <input className="input" key={field} placeholder={field} value={form[field] || ''} onChange={(e) => setForm((old) => ({ ...old, [field]: e.target.value }))} />)}
         <button className="primary">Create Company</button>
       </form>
-      {done && <p className="muted">Company created.</p>}
+      {done && <p className="muted">Company and first user created.</p>}
     </section>
   );
 }
