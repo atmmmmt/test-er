@@ -9,8 +9,10 @@ import { SuppliersPage } from './pages/SuppliersPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { SalesPage } from './pages/SalesPage';
 import { OrdersInPage } from './pages/OrdersInPage';
+import { LoginPage } from './pages/LoginPage';
+import { SetupPage } from './pages/SetupPage';
 
-const pages = ['owner', 'tenant', 'products', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'reports', 'mobile'] as const;
+const pages = ['login', 'setup', 'owner', 'tenant', 'products', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
 
 export function Shell() {
@@ -25,6 +27,8 @@ export function Shell() {
         <nav className="topbar glass"><div className="brand"><span className="mark">ERP</span><div><b>Warehouse Cloud</b><small>{isAr ? 'عربي / English' : 'English / عربي'}</small></div></div><button className="ghost" onClick={() => setLang(isAr ? 'en' : 'ar')}>{isAr ? 'English' : 'العربية'}</button></nav>
         <header className="hero glass"><p className="eyebrow">Production SaaS ERP</p><h1>{isAr ? 'منصة إدارة مستودعات متكاملة' : 'Complete Warehouse SaaS Platform'}</h1><p className="lead">{isAr ? 'لوحة مالك المنصة، لوحة الشركة، صفحات تشغيلية، وواجهة موبايل PWA.' : 'Owner dashboard, company dashboard, operational pages, and mobile PWA.'}</p></header>
         <div className="view-switch">{pages.map((item) => <button key={item} className={page === item ? 'tab active' : 'tab'} onClick={() => setPage(item)}>{item}</button>)}</div>
+        {page === 'login' && <LoginPage />}
+        {page === 'setup' && <SetupPage />}
         {page === 'owner' && <SaasOwnerPage isAr={isAr} />}
         {page === 'tenant' && <TenantArea isAr={isAr} />}
         {page === 'products' && <ProductsPage />}
