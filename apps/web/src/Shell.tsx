@@ -13,8 +13,10 @@ import { OrdersInPage } from './pages/OrdersInPage';
 import { MovementsPage } from './pages/MovementsPage';
 import { LoginPage } from './pages/LoginPage';
 import { SetupPage } from './pages/SetupPage';
+import { OwnerPricingPage } from './pages/OwnerPricingPage';
+import { SubscriptionsPage } from './pages/SubscriptionsPage';
 
-const pages = ['login', 'setup', 'owner', 'tenant', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'movements', 'reports', 'mobile'] as const;
+const pages = ['login', 'setup', 'owner', 'pricing', 'subscriptions', 'tenant', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'movements', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
 
 export function Shell() {
@@ -32,6 +34,8 @@ export function Shell() {
         {page === 'login' && <LoginPage />}
         {page === 'setup' && <SetupPage />}
         {page === 'owner' && <SaasOwnerPage isAr={isAr} />}
+        {page === 'pricing' && <OwnerPricingPage />}
+        {page === 'subscriptions' && <SubscriptionsPage />}
         {page === 'tenant' && <TenantArea isAr={isAr} />}
         {page === 'products' && <ProductsPage />}
         {page === 'categories' && <CategoriesPage />}
