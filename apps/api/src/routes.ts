@@ -8,6 +8,7 @@ import { Category } from './models/Category.js';
 import { Storage } from './models/Storage.js';
 import { Party } from './models/Party.js';
 import { PurchaseOrder } from './models/PurchaseOrder.js';
+import { Sale } from './models/Sale.js';
 import { StockBalance } from './models/StockBalance.js';
 import { Movement } from './models/Movement.js';
 
@@ -39,11 +40,12 @@ crud('/warehouses', Storage);
 crud('/suppliers', Party, { type: 'supplier' });
 crud('/customers', Party, { type: 'customer' });
 crud('/purchases', PurchaseOrder);
+crud('/sales', Sale);
 crud('/balances', StockBalance);
 crud('/movements', Movement);
 
 routes.get('/reports/overview', async (_req, res) => {
-  const [tenants, users, products, warehouses, suppliers, customers, purchases, movements] = await Promise.all([
+  const [tenants, users, products, warehouses, suppliers, customers, purchases, sales, movements] = await Promise.all([
     Tenant.countDocuments(),
     User.countDocuments(),
     Product.countDocuments(),
@@ -51,7 +53,8 @@ routes.get('/reports/overview', async (_req, res) => {
     Party.countDocuments({ type: 'supplier' }),
     Party.countDocuments({ type: 'customer' }),
     PurchaseOrder.countDocuments(),
+    Sale.countDocuments(),
     Movement.countDocuments()
   ]);
-  res.json({ data: { tenants, users, products, warehouses, suppliers, customers, purchases, movements } });
+  res.json({ data: { tenants, users, products, warehouses, suppliers, customers, purchases, sales, movements } });
 });
