@@ -4,15 +4,17 @@ import { TenantArea } from './pages/TenantArea';
 import { MobileOperationPage } from './pages/MobileOperationPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { ProductsPage } from './pages/ProductsPage';
+import { CategoriesPage } from './pages/CategoriesPage';
 import { WarehousesPage } from './pages/WarehousesPage';
 import { SuppliersPage } from './pages/SuppliersPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { SalesPage } from './pages/SalesPage';
 import { OrdersInPage } from './pages/OrdersInPage';
+import { MovementsPage } from './pages/MovementsPage';
 import { LoginPage } from './pages/LoginPage';
 import { SetupPage } from './pages/SetupPage';
 
-const pages = ['login', 'setup', 'owner', 'tenant', 'products', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'reports', 'mobile'] as const;
+const pages = ['login', 'setup', 'owner', 'tenant', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'movements', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
 
 export function Shell() {
@@ -32,11 +34,13 @@ export function Shell() {
         {page === 'owner' && <SaasOwnerPage isAr={isAr} />}
         {page === 'tenant' && <TenantArea isAr={isAr} />}
         {page === 'products' && <ProductsPage />}
+        {page === 'categories' && <CategoriesPage />}
         {page === 'warehouses' && <WarehousesPage />}
         {page === 'suppliers' && <SuppliersPage />}
         {page === 'customers' && <CustomersPage />}
         {page === 'orders' && <OrdersInPage />}
         {page === 'sales' && <SalesPage />}
+        {page === 'movements' && <MovementsPage />}
         {page === 'reports' && <ReportsPage />}
         {page === 'mobile' && <MobileOperationPage />}
       </section>
