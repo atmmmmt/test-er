@@ -1,6 +1,6 @@
 # Production Readiness
 
-Current status: production foundation is implemented, but final product readiness requires build verification, deployment, and UI polish.
+Current status: production foundation is implemented. Final readiness now depends on build verification, deployment, and the remaining UI/PWA polish.
 
 ## Completed
 
@@ -19,6 +19,8 @@ Current status: production foundation is implemented, but final product readines
 - Customers
 - Purchases
 - Sales
+- Purchase confirmation endpoint
+- Sale confirmation endpoint
 - Stock balances
 - Stock movements
 - Stock receive endpoint
@@ -29,23 +31,21 @@ Current status: production foundation is implemented, but final product readines
 - Subscriptions
 - Demo seed
 - Web shell
+- Localized navigation labels
 - Setup page
 - Login page
 - CRUD pages
-- Mobile operation page
+- CRUD validation and status messages
+- Confirm operations page
+- Mobile operation page with product and quantity
 - Deployment guide
 - Build workflow
 
 ## Remaining
 
 - Run GitHub Actions and fix build errors
-- Replace technical tab names with polished Arabic and English labels
-- Add sidebar layout
-- Add form validation
 - Add toast notifications
 - Add role-based permission UI
-- Add purchase confirmation screen
-- Add sale confirmation screen
 - Add barcode scanner screen
 - Add PWA service worker and icons
 - Deploy backend
