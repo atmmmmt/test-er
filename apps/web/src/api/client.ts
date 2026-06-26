@@ -5,16 +5,34 @@ function headers() {
   return token ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } : { 'Content-Type': 'application/json' };
 }
 
+async function parse(res: Response) {
+  try {
+    const data = await res.json();
+    if (!res.ok) return { message: data.message || 'Request failed' };
+    return data;
+  } catch {
+    return { message: 'Server is not reachable' };
+  }
+}
+
 export async function apiGet(path: string) {
-  const res = await fetch(`${API_URL}${path}`, { headers: headers() });
-  return res.json();
+  try {
+    const res = await fetch(`${API_URL}${path}`, { headers: headers() });
+    return parse(res);
+  } catch {
+    return { message: 'Server is not reachable' };
+  }
 }
 
 export async function apiPost(path: string, body: unknown) {
-  const res = await fetch(`${API_URL}${path}`, {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify(body)
-  });
-  return res.json();
+  try {
+    const res = await fetch(`${API_URL}${path}`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(body)
+    });
+    return parse(res);
+  } catch {
+    return { message: 'Server is not reachable' };
+  }
 }
