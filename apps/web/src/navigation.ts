@@ -1,0 +1,21 @@
+export const pageLabels: Record<string, { ar: string; en: string }> = {
+  home: { ar: 'الرئيسية', en: 'Home' },
+  login: { ar: 'تسجيل الدخول', en: 'Login' },
+  setup: { ar: 'إعداد الشركة', en: 'Setup' },
+  settings: { ar: 'الإعدادات', en: 'Settings' },
+  seed: { ar: 'بيانات تجريبية', en: 'Seed' },
+  owner: { ar: 'مالك المنصة', en: 'Owner' },
+  pricing: { ar: 'الخطط', en: 'Plans' },
+  subscriptions: { ar: 'الاشتراكات', en: 'Subscriptions' },
+  tenant: { ar: 'الشركة', en: 'Company' },
+  products: { ar: 'المنتجات', en: 'Products' },
+  categories: { ar: 'التصنيفات', en: 'Categories' },
+  warehouses: { ar: 'المستودعات', en: 'Warehouses' },
+  suppliers: { ar: 'الموردون', en: 'Suppliers' },
+  customers: { ar: 'العملاء', en: 'Customers' },
+  orders: { ar: 'الطلبات الداخلة', en: 'Inbound' },
+  sales: { ar: 'المبيعات', en: 'Sales' },
+  movements: { ar: 'حركات المخزون', en: 'Movements' },
+  reports: { ar: 'التقارير', en: 'Reports' },
+  mobile: { ar: 'تطبيق الموظف', en: 'Mobile' }
+};
