@@ -8,6 +8,7 @@ export const pageLabels: Record<string, { ar: string; en: string }> = {
   pricing: { ar: 'الخطط', en: 'Plans' },
   subscriptions: { ar: 'الاشتراكات', en: 'Subscriptions' },
   tenant: { ar: 'الشركة', en: 'Company' },
+  roles: { ar: 'الأدوار', en: 'Roles' },
   products: { ar: 'المنتجات', en: 'Products' },
   categories: { ar: 'التصنيفات', en: 'Categories' },
   warehouses: { ar: 'المستودعات', en: 'Warehouses' },
