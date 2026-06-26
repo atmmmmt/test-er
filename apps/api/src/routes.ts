@@ -14,6 +14,8 @@ import { Sale } from './models/Sale.js';
 import { StockBalance } from './models/StockBalance.js';
 import { Movement } from './models/Movement.js';
 import { receivePurchase, issueSale, moveStock } from './services/flow.service.js';
+import { confirmPurchase } from './services/purchase.service.js';
+import { confirmSale } from './services/sale.service.js';
 import { sessionRoutes } from './modules/session.routes.js';
 import { userSecure } from './modules/userSecure.js';
 import { requireAuth } from './middlewares/auth.js';
@@ -31,6 +33,8 @@ routes.use('/session', sessionRoutes); routes.post('/tenants', async (req, res) 
 routes.use(requireAuth);
 crud('/tenants', Tenant, {}, false); crud('/roles', Role); crud('/plans', Plan, {}, false); crud('/subscriptions', Subscription); crud('/users', User); crud('/products', Product); crud('/categories', Category); crud('/warehouses', Storage); crud('/suppliers', Party, { type: 'supplier' }); crud('/customers', Party, { type: 'customer' });
 crud('/purchases', PurchaseOrder); crud('/sales', Sale); crud('/balances', StockBalance); crud('/movements', Movement);
+routes.post('/purchases/:id/confirm', async (req, res) => res.json({ data: await confirmPurchase(req.params.id, String(req.body.storageId || req.query.storageId || '')) }));
+routes.post('/sales/:id/confirm', async (req, res) => res.json({ data: await confirmSale(req.params.id) }));
 routes.post('/stock/receive', async (req, res) => res.status(201).json({ data: await receivePurchase(req.body) }));
 routes.post('/stock/issue', async (req, res) => res.status(201).json({ data: await issueSale(req.body) }));
 routes.post('/stock/move', async (req, res) => res.status(201).json({ data: await moveStock(req.body) }));
