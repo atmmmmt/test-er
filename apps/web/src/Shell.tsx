@@ -15,8 +15,9 @@ import { LoginPage } from './pages/LoginPage';
 import { SetupPage } from './pages/SetupPage';
 import { OwnerPricingPage } from './pages/OwnerPricingPage';
 import { SubscriptionsPage } from './pages/SubscriptionsPage';
+import { LocalSettingsPage } from './pages/LocalSettingsPage';
 
-const pages = ['login', 'setup', 'owner', 'pricing', 'subscriptions', 'tenant', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'movements', 'reports', 'mobile'] as const;
+const pages = ['login', 'setup', 'settings', 'owner', 'pricing', 'subscriptions', 'tenant', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'movements', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
 
 export function Shell() {
@@ -33,6 +34,7 @@ export function Shell() {
         <div className="view-switch">{pages.map((item) => <button key={item} className={page === item ? 'tab active' : 'tab'} onClick={() => setPage(item)}>{item}</button>)}</div>
         {page === 'login' && <LoginPage />}
         {page === 'setup' && <SetupPage />}
+        {page === 'settings' && <LocalSettingsPage />}
         {page === 'owner' && <SaasOwnerPage isAr={isAr} />}
         {page === 'pricing' && <OwnerPricingPage />}
         {page === 'subscriptions' && <SubscriptionsPage />}
