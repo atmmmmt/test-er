@@ -27,9 +27,9 @@ function crud(path: string, model: any, extra: Record<string, unknown> = {}, sco
   routes.post(path, async (req, res) => res.status(201).json({ data: await model.create(scoped ? { ...withTenant(req), ...extra } : { ...req.body, ...extra }) }));
 }
 routes.get('/', (_req, res) => res.json({ name: 'Warehouse SaaS ERP', version: 'v1', ok: true }));
-routes.use('/session', sessionRoutes); crud('/tenants', Tenant, {}, false); routes.use('/', userSecure); routes.use('/', seed);
+routes.use('/session', sessionRoutes); routes.post('/tenants', async (req, res) => res.status(201).json({ data: await Tenant.create(req.body) })); routes.use('/', userSecure); routes.use('/', seed);
 routes.use(requireAuth);
-crud('/roles', Role); crud('/plans', Plan, {}, false); crud('/subscriptions', Subscription); crud('/users', User); crud('/products', Product); crud('/categories', Category); crud('/warehouses', Storage); crud('/suppliers', Party, { type: 'supplier' }); crud('/customers', Party, { type: 'customer' });
+crud('/tenants', Tenant, {}, false); crud('/roles', Role); crud('/plans', Plan, {}, false); crud('/subscriptions', Subscription); crud('/users', User); crud('/products', Product); crud('/categories', Category); crud('/warehouses', Storage); crud('/suppliers', Party, { type: 'supplier' }); crud('/customers', Party, { type: 'customer' });
 crud('/purchases', PurchaseOrder); crud('/sales', Sale); crud('/balances', StockBalance); crud('/movements', Movement);
 routes.post('/stock/receive', async (req, res) => res.status(201).json({ data: await receivePurchase(req.body) }));
 routes.post('/stock/issue', async (req, res) => res.status(201).json({ data: await issueSale(req.body) }));
