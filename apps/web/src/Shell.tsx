@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { pageLabels } from './navigation';
 import { HomePage } from './pages/HomePage';
 import { SaasOwnerPage } from './pages/SaasOwnerPage';
 import { TenantArea } from './pages/TenantArea';
@@ -33,7 +34,7 @@ export function Shell() {
       <section className="container">
         <nav className="topbar glass"><div className="brand"><span className="mark">ERP</span><div><b>Warehouse Cloud</b><small>{isAr ? 'عربي / English' : 'English / عربي'}</small></div></div><button className="ghost" onClick={() => setLang(isAr ? 'en' : 'ar')}>{isAr ? 'English' : 'العربية'}</button></nav>
         <header className="hero glass"><p className="eyebrow">Production SaaS ERP</p><h1>{isAr ? 'منصة إدارة مستودعات متكاملة' : 'Complete Warehouse SaaS Platform'}</h1><p className="lead">{isAr ? 'لوحة مالك المنصة، لوحة الشركة، صفحات تشغيلية، وواجهة موبايل PWA.' : 'Owner dashboard, company dashboard, operational pages, and mobile PWA.'}</p></header>
-        <div className="view-switch">{pages.map((item) => <button key={item} className={page === item ? 'tab active' : 'tab'} onClick={() => setPage(item)}>{item}</button>)}</div>
+        <div className="view-switch">{pages.map((item) => <button key={item} className={page === item ? 'tab active' : 'tab'} onClick={() => setPage(item)}>{isAr ? pageLabels[item].ar : pageLabels[item].en}</button>)}</div>
         {page === 'home' && <HomePage openPage={(next) => setPage(next as Page)} />}
         {page === 'login' && <LoginPage />}
         {page === 'setup' && <SetupPage />}
