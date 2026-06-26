@@ -20,8 +20,9 @@ import { SubscriptionsPage } from './pages/SubscriptionsPage';
 import { LocalSettingsPage } from './pages/LocalSettingsPage';
 import { SeedPage } from './pages/SeedPage';
 import { ConfirmPage } from './pages/ConfirmPage';
+import { RolesPage } from './pages/RolesPage';
 
-const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'confirm', 'movements', 'reports', 'mobile'] as const;
+const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'roles', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'confirm', 'movements', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
 
 export function Shell() {
@@ -45,6 +46,7 @@ export function Shell() {
         {page === 'pricing' && <OwnerPricingPage />}
         {page === 'subscriptions' && <SubscriptionsPage />}
         {page === 'tenant' && <TenantArea isAr={isAr} />}
+        {page === 'roles' && <RolesPage />}
         {page === 'products' && <ProductsPage />}
         {page === 'categories' && <CategoriesPage />}
         {page === 'warehouses' && <WarehousesPage />}
