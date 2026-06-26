@@ -2,19 +2,20 @@
 
 1. Run API and web.
 2. Open the web app.
-3. Go to setup.
-4. Create tenant and first user.
-5. Go to login.
-6. Login with email and password.
-7. Go to seed and create default plans.
-8. Create product.
-9. Create warehouse.
-10. Create supplier and customer.
-11. Open reports.
-12. Save tenantId and storageId in settings.
-13. Test mobile operations.
+3. Go to seed and create demo data.
+4. Login with admin@demo.com and demo12345.
+5. Open reports and verify demo counts.
+6. Open settings and verify tenantId and storageId are saved.
+7. Create product, warehouse, supplier, and customer records.
+8. Create purchase and sale records.
+9. Open confirm page and confirm purchase or sale.
+10. Open movements and balances to verify stock changes.
+11. Open mobile page.
+12. Enter productId and quantity.
+13. Test receive, pick, and transfer flows.
 
 Notes:
 - Protected pages require login.
 - Access token is stored in localStorage.
 - Tenant data is scoped by tenantId.
+- Demo seed returns tenant and warehouse ids.
