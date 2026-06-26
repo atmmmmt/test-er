@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { HomePage } from './pages/HomePage';
 import { SaasOwnerPage } from './pages/SaasOwnerPage';
 import { TenantArea } from './pages/TenantArea';
 import { MobileOperationPage } from './pages/MobileOperationPage';
@@ -18,12 +19,12 @@ import { SubscriptionsPage } from './pages/SubscriptionsPage';
 import { LocalSettingsPage } from './pages/LocalSettingsPage';
 import { SeedPage } from './pages/SeedPage';
 
-const pages = ['login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'movements', 'reports', 'mobile'] as const;
+const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'movements', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
 
 export function Shell() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
-  const [page, setPage] = useState<Page>('tenant');
+  const [page, setPage] = useState<Page>('home');
   const isAr = lang === 'ar';
   document.documentElement.dir = isAr ? 'rtl' : 'ltr';
   document.documentElement.lang = lang;
@@ -33,6 +34,7 @@ export function Shell() {
         <nav className="topbar glass"><div className="brand"><span className="mark">ERP</span><div><b>Warehouse Cloud</b><small>{isAr ? 'عربي / English' : 'English / عربي'}</small></div></div><button className="ghost" onClick={() => setLang(isAr ? 'en' : 'ar')}>{isAr ? 'English' : 'العربية'}</button></nav>
         <header className="hero glass"><p className="eyebrow">Production SaaS ERP</p><h1>{isAr ? 'منصة إدارة مستودعات متكاملة' : 'Complete Warehouse SaaS Platform'}</h1><p className="lead">{isAr ? 'لوحة مالك المنصة، لوحة الشركة، صفحات تشغيلية، وواجهة موبايل PWA.' : 'Owner dashboard, company dashboard, operational pages, and mobile PWA.'}</p></header>
         <div className="view-switch">{pages.map((item) => <button key={item} className={page === item ? 'tab active' : 'tab'} onClick={() => setPage(item)}>{item}</button>)}</div>
+        {page === 'home' && <HomePage openPage={(next) => setPage(next as Page)} />}
         {page === 'login' && <LoginPage />}
         {page === 'setup' && <SetupPage />}
         {page === 'settings' && <LocalSettingsPage />}
