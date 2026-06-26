@@ -12,6 +12,8 @@ Current status: production foundation is implemented. Final readiness now depend
 - Password hashing for setup users
 - Protected internal routes
 - Tenant-scoped CRUD
+- Permission map foundation
+- Roles page
 - Products
 - Categories
 - Warehouses
@@ -40,17 +42,22 @@ Current status: production foundation is implemented. Final readiness now depend
 - Mobile operation page with product and quantity
 - Deployment guide
 - Build workflow
+- Check script
 
 ## Remaining
 
 - Run GitHub Actions and fix build errors
 - Add toast notifications
-- Add role-based permission UI
+- Attach permissions to every route group
 - Add barcode scanner screen
 - Add PWA service worker and icons
 - Deploy backend
 - Deploy frontend
 - Add production domain and SSL
+
+## Build note
+
+API TypeScript strict mode is relaxed for build stability during MVP hardening. Re-enable strict mode gradually after the deployed version is stable.
 
 ## Demo credentials after seed
 
