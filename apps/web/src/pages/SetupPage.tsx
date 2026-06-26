@@ -7,7 +7,7 @@ export function SetupPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const tenant = await apiPost('/tenants', { name: form.companyName, slug: form.slug, status: 'trial' });
-    await apiPost('/users', { tenantId: tenant.data?._id, name: form.name, email: form.email, passwordHash: form.password || 'change-me' });
+    await apiPost('/secure-users', { tenantId: tenant.data?._id, name: form.name, email: form.email, password: form.password || 'change-me' });
     setDone(true);
   }
   return (
