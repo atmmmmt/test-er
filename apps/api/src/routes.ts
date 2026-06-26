@@ -17,6 +17,7 @@ import { receivePurchase, issueSale, moveStock } from './services/flow.service.j
 import { sessionRoutes } from './modules/session.routes.js';
 import { userSecure } from './modules/userSecure.js';
 import { requireAuth } from './middlewares/auth.js';
+import { seed } from './modules/seed.js';
 export const routes = Router();
 const demoTenantId = new Types.ObjectId('000000000000000000000001');
 function tid(req: any) { return req.user?.tenantId || req.query.tenantId || req.body.tenantId || demoTenantId; }
@@ -26,7 +27,7 @@ function crud(path: string, model: any, extra: Record<string, unknown> = {}, sco
   routes.post(path, async (req, res) => res.status(201).json({ data: await model.create(scoped ? { ...withTenant(req), ...extra } : { ...req.body, ...extra }) }));
 }
 routes.get('/', (_req, res) => res.json({ name: 'Warehouse SaaS ERP', version: 'v1', ok: true }));
-routes.use('/session', sessionRoutes); crud('/tenants', Tenant, {}, false); routes.use('/', userSecure);
+routes.use('/session', sessionRoutes); crud('/tenants', Tenant, {}, false); routes.use('/', userSecure); routes.use('/', seed);
 routes.use(requireAuth);
 crud('/roles', Role); crud('/plans', Plan, {}, false); crud('/subscriptions', Subscription); crud('/users', User); crud('/products', Product); crud('/categories', Category); crud('/warehouses', Storage); crud('/suppliers', Party, { type: 'supplier' }); crud('/customers', Party, { type: 'customer' });
 crud('/purchases', PurchaseOrder); crud('/sales', Sale); crud('/balances', StockBalance); crud('/movements', Movement);
