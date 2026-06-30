@@ -13,7 +13,9 @@ Current status: production foundation is implemented. Final readiness now depend
 - Protected internal routes
 - Tenant-scoped CRUD
 - Permission map foundation
+- Permissions enforced on protected route groups
 - Roles page
+- Role permission normalization
 - Products
 - Categories
 - Warehouses
@@ -32,6 +34,7 @@ Current status: production foundation is implemented. Final readiness now depend
 - Plans
 - Subscriptions
 - Demo seed
+- API map documentation
 - Web shell
 - Localized navigation labels
 - Setup page
@@ -48,7 +51,6 @@ Current status: production foundation is implemented. Final readiness now depend
 
 - Run GitHub Actions and fix build errors
 - Add toast notifications
-- Attach permissions to every route group
 - Add barcode scanner screen
 - Add PWA service worker and icons
 - Deploy backend
