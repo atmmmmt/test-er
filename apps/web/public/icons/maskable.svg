@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Warehouse Cloud Maskable">
+  <rect width="512" height="512" fill="#6366f1"/>
+  <circle cx="256" cy="256" r="210" fill="#0f172a" opacity="0.28"/>
+  <path d="M132 214 256 145l124 69v137l-124 68-124-68V214Z" fill="none" stroke="#fff" stroke-width="30" stroke-linejoin="round"/>
+  <path d="M132 214l124 69 124-69M256 283v136" fill="none" stroke="#fff" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M186 176h140" stroke="#fff" stroke-width="26" stroke-linecap="round"/>
+</svg>
