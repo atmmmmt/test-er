@@ -3,9 +3,41 @@
   "short_name": "Warehouse ERP",
   "description": "Arabic and English platform for warehouse operations.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#090d1a",
   "theme_color": "#0f172a",
   "dir": "rtl",
-  "lang": "ar"
+  "lang": "ar",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mobile Operations",
+      "short_name": "Mobile",
+      "description": "Open mobile warehouse operations.",
+      "url": "/?page=mobile",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Barcode",
+      "short_name": "Barcode",
+      "description": "Open barcode product lookup.",
+      "url": "/?page=barcode",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
 }
