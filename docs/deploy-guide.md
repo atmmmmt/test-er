@@ -34,9 +34,36 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ```
 
-## Frontend deploy
+## Render backend deploy
 
-Set this environment variable in the hosting platform:
+The repository includes `render.yaml`.
+
+Required Render env vars:
+
+```env
+MONGO_URI=your_mongodb_uri
+JWT_ACCESS_SECRET=change_me_long_secret
+JWT_REFRESH_SECRET=change_me_long_secret
+WEB_URL=https://your-frontend-domain.com
+```
+
+Build command:
+
+```bash
+npm install && npm run build -w apps/api
+```
+
+Start command:
+
+```bash
+npm run start -w apps/api
+```
+
+## Vercel frontend deploy
+
+The repository includes `vercel.json`.
+
+Required Vercel env var:
 
 ```env
 VITE_API_URL=https://your-api-domain.com/api/v1
@@ -45,10 +72,16 @@ VITE_API_URL=https://your-api-domain.com/api/v1
 Build command:
 
 ```bash
-npm run build --workspace @warehouse/web
+npm install && npm run build -w apps/web
 ```
 
-## Backend deploy
+Output directory:
+
+```txt
+apps/web/dist
+```
+
+## VPS backend deploy
 
 Install dependencies and build:
 
@@ -67,11 +100,12 @@ pm2 save
 ## Test scenario
 
 1. Open web app.
-2. Go to setup.
-3. Create company and first user.
-4. Login with the same email and password.
-5. Go to seed and create default plans.
-6. Create products, warehouses, suppliers, customers.
-7. Use reports to verify data.
-8. Use settings to store tenant and warehouse ids.
-9. Use mobile page to test receive, issue, and transfer flows.
+2. Go to seed and create demo data.
+3. Login with admin@demo.com and demo12345.
+4. Open reports and verify counts.
+5. Use settings to store tenant and warehouse ids.
+6. Use barcode to select product.
+7. Use mobile page to test receive, issue, and transfer flows.
+8. Create purchase and sale records.
+9. Use confirm page to confirm purchase and sale.
+10. Use movements and balances to verify stock changes.
