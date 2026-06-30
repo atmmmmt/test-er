@@ -17,6 +17,7 @@ export const pageLabels: Record<string, { ar: string; en: string }> = {
   orders: { ar: 'الطلبات الداخلة', en: 'Inbound' },
   sales: { ar: 'المبيعات', en: 'Sales' },
   confirm: { ar: 'تأكيد العمليات', en: 'Confirm' },
+  barcode: { ar: 'الباركود', en: 'Barcode' },
   movements: { ar: 'حركات المخزون', en: 'Movements' },
   reports: { ar: 'التقارير', en: 'Reports' },
   mobile: { ar: 'تطبيق الموظف', en: 'Mobile' }
