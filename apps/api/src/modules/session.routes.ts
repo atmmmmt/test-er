@@ -4,8 +4,9 @@ import { signAccessToken, signRefreshToken } from '../utils/tokens.js';
 import { passwordMatches } from '../utils/password.js';
 
 export const sessionRoutes = Router();
+function aw(fn: any) { return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next); }
 
-sessionRoutes.post('/login', async (req, res) => {
+sessionRoutes.post('/login', aw(async (req: any, res: any) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email: String(email).toLowerCase() });
   if (!user) return res.status(401).json({ message: 'Invalid credentials' });
@@ -15,7 +16,7 @@ sessionRoutes.post('/login', async (req, res) => {
   await user.save();
   const payload = { userId: String(user._id), tenantId: String(user.tenantId), roleId: user.roleId ? String(user.roleId) : undefined, permissions: user.permissions || [] };
   res.json({ data: { user: { id: user._id, name: user.name, email: user.email }, accessToken: signAccessToken(payload), refreshToken: signRefreshToken(payload) } });
-});
+}));
 
 sessionRoutes.get('/me', (_req, res) => {
   res.json({ data: { ready: true } });
