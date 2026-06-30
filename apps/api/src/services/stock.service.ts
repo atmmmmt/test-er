@@ -10,16 +10,19 @@ export async function applyStockMovement(input: {
   quantity: number;
   note?: string;
 }) {
+  if (!input.tenantId) throw new Error('tenantId is required');
+  if (!input.productId) throw new Error('productId is required');
+  if (!input.storageId) throw new Error('storageId is required');
+  if (!Number.isFinite(input.quantity) || input.quantity <= 0) throw new Error('quantity must be greater than zero');
   const tenantId = new Types.ObjectId(input.tenantId);
-  const productId = input.productId ? new Types.ObjectId(input.productId) : undefined;
-  const storageId = input.storageId ? new Types.ObjectId(input.storageId) : undefined;
-  const current = productId && storageId ? await StockBalance.findOne({ tenantId, productId, storageId }) : null;
+  const productId = new Types.ObjectId(input.productId);
+  const storageId = new Types.ObjectId(input.storageId);
+  const current = await StockBalance.findOne({ tenantId, productId, storageId });
   const beforeQty = current?.quantity || 0;
-  const positiveTypes = ['purchase_receive', 'return_in', 'manual_in'];
+  const positiveTypes = ['purchase_receive', 'return_in', 'manual_in', 'transfer_in'];
   const delta = positiveTypes.includes(input.movementType) ? input.quantity : -input.quantity;
   const afterQty = beforeQty + delta;
-  if (productId && storageId) {
-    await StockBalance.findOneAndUpdate({ tenantId, productId, storageId }, { quantity: afterQty }, { upsert: true, new: true });
-  }
+  if (afterQty < 0) throw new Error('Insufficient stock');
+  await StockBalance.findOneAndUpdate({ tenantId, productId, storageId }, { tenantId, productId, storageId, quantity: afterQty }, { upsert: true, new: true });
   return Movement.create({ tenantId, productId, storageId, movementType: input.movementType, quantity: input.quantity, beforeQty, afterQty, note: input.note });
 }
