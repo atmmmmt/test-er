@@ -21,8 +21,9 @@ import { LocalSettingsPage } from './pages/LocalSettingsPage';
 import { SeedPage } from './pages/SeedPage';
 import { ConfirmPage } from './pages/ConfirmPage';
 import { RolesPage } from './pages/RolesPage';
+import { BarcodePage } from './pages/BarcodePage';
 
-const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'roles', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'confirm', 'movements', 'reports', 'mobile'] as const;
+const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'roles', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'confirm', 'barcode', 'movements', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
 
 export function Shell() {
@@ -55,6 +56,7 @@ export function Shell() {
         {page === 'orders' && <OrdersInPage />}
         {page === 'sales' && <SalesPage />}
         {page === 'confirm' && <ConfirmPage />}
+        {page === 'barcode' && <BarcodePage />}
         {page === 'movements' && <MovementsPage />}
         {page === 'reports' && <ReportsPage />}
         {page === 'mobile' && <MobileOperationPage />}
