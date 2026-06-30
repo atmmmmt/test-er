@@ -1,6 +1,6 @@
 # Production Readiness
 
-Current status: production foundation is implemented. Final readiness now depends on build verification, deployment, and the remaining UI/PWA polish.
+Current status: production foundation is implemented. Final readiness now depends on build verification, live deployment, and the remaining PWA polish.
 
 ## Completed
 
@@ -27,6 +27,8 @@ Current status: production foundation is implemented. Final readiness now depend
 - Sale confirmation endpoint
 - Stock balances
 - Stock movements
+- Negative stock prevention
+- Stock movement validation
 - Stock receive endpoint
 - Stock issue endpoint
 - Stock transfer endpoint
@@ -42,8 +44,11 @@ Current status: production foundation is implemented. Final readiness now depend
 - CRUD pages
 - CRUD validation and status messages
 - Confirm operations page
+- Barcode product picker page
 - Mobile operation page with product and quantity
 - Deployment guide
+- Render backend config
+- Vercel frontend config
 - Build workflow
 - Check script
 
@@ -51,10 +56,10 @@ Current status: production foundation is implemented. Final readiness now depend
 
 - Run GitHub Actions and fix build errors
 - Add toast notifications
-- Add barcode scanner screen
+- Add camera-based barcode scanner
 - Add PWA service worker and icons
-- Deploy backend
-- Deploy frontend
+- Deploy backend to a live URL
+- Deploy frontend to a live URL
 - Add production domain and SSL
 
 ## Build note
