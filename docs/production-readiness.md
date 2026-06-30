@@ -25,6 +25,7 @@ Current status: production foundation is implemented. Final readiness now depend
 - Sales
 - Purchase confirmation endpoint
 - Sale confirmation endpoint
+- Async route error wrapping
 - Stock balances
 - Stock movements
 - Negative stock prevention
@@ -45,6 +46,7 @@ Current status: production foundation is implemented. Final readiness now depend
 - CRUD validation and status messages
 - Confirm operations page
 - Barcode product picker page
+- Camera scan foundation page
 - Mobile operation page with product and quantity
 - Deployment guide
 - Render backend config
@@ -56,7 +58,7 @@ Current status: production foundation is implemented. Final readiness now depend
 
 - Run GitHub Actions and fix build errors
 - Add toast notifications
-- Add camera-based barcode scanner
+- Add real BarcodeDetector decoding loop
 - Add PWA service worker and icons
 - Deploy backend to a live URL
 - Deploy frontend to a live URL
