@@ -26,10 +26,14 @@ import { ScanPage } from './pages/ScanPage';
 
 const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'roles', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'confirm', 'barcode', 'scan', 'movements', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
+function initialPage(): Page {
+  const value = new URLSearchParams(window.location.search).get('page') as Page | null;
+  return value && pages.includes(value) ? value : 'home';
+}
 
 export function Shell() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
-  const [page, setPage] = useState<Page>('home');
+  const [page, setPage] = useState<Page>(initialPage());
   const isAr = lang === 'ar';
   document.documentElement.dir = isAr ? 'rtl' : 'ltr';
   document.documentElement.lang = lang;
