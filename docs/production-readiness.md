@@ -26,10 +26,12 @@ Current status: production foundation is implemented. Final readiness now depend
 - Purchase confirmation endpoint
 - Sale confirmation endpoint
 - Async route error wrapping
+- Session/setup/seed async error wrapping
 - Stock balances
 - Stock movements
 - Negative stock prevention
 - Stock movement validation
+- Stock flow input validation
 - Stock receive endpoint
 - Stock issue endpoint
 - Stock transfer endpoint
@@ -47,6 +49,7 @@ Current status: production foundation is implemented. Final readiness now depend
 - Confirm operations page
 - Barcode product picker page
 - Camera scan foundation page
+- BarcodeDetector decoding loop
 - Mobile operation page with product and quantity
 - Deployment guide
 - Render backend config
@@ -58,7 +61,6 @@ Current status: production foundation is implemented. Final readiness now depend
 
 - Run GitHub Actions and fix build errors
 - Add toast notifications
-- Add real BarcodeDetector decoding loop
 - Add PWA service worker and icons
 - Deploy backend to a live URL
 - Deploy frontend to a live URL
