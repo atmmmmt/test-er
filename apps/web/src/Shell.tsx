@@ -23,8 +23,9 @@ import { ConfirmPage } from './pages/ConfirmPage';
 import { RolesPage } from './pages/RolesPage';
 import { BarcodePage } from './pages/BarcodePage';
 import { ScanPage } from './pages/ScanPage';
+import { PwaStatusPage } from './pages/PwaStatusPage';
 
-const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'roles', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'confirm', 'barcode', 'scan', 'movements', 'reports', 'mobile'] as const;
+const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'roles', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'confirm', 'barcode', 'scan', 'pwa', 'movements', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
 function initialPage(): Page {
   const value = new URLSearchParams(window.location.search).get('page') as Page | null;
@@ -63,6 +64,7 @@ export function Shell() {
         {page === 'confirm' && <ConfirmPage />}
         {page === 'barcode' && <BarcodePage />}
         {page === 'scan' && <ScanPage />}
+        {page === 'pwa' && <PwaStatusPage />}
         {page === 'movements' && <MovementsPage />}
         {page === 'reports' && <ReportsPage />}
         {page === 'mobile' && <MobileOperationPage />}
