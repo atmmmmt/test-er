@@ -16,6 +16,7 @@ import { Movement } from './models/Movement.js';
 import { receivePurchase, issueSale, moveStock } from './services/flow.service.js';
 import { confirmPurchase } from './services/purchase.service.js';
 import { confirmSale } from './services/sale.service.js';
+import { lowStockAlerts } from './services/alerts.service.js';
 import { sessionRoutes } from './modules/session.routes.js';
 import { userSecure } from './modules/userSecure.js';
 import { usersRoutes } from './modules/users.routes.js';
@@ -44,8 +45,9 @@ routes.post('/sales/:id/confirm', requirePermission('sales.write'), aw(async (re
 routes.post('/stock/receive', requirePermission('stock.write'), aw(async (req: any, res: any) => res.status(201).json({ data: await receivePurchase(req.body) })));
 routes.post('/stock/issue', requirePermission('stock.write'), aw(async (req: any, res: any) => res.status(201).json({ data: await issueSale(req.body) })));
 routes.post('/stock/move', requirePermission('stock.write'), aw(async (req: any, res: any) => res.status(201).json({ data: await moveStock(req.body) })));
+routes.get('/alerts/low-stock', requirePermission('reports.read'), aw(async (req: any, res: any) => res.json({ data: await lowStockAlerts(String(tid(req))) })));
 routes.get('/reports/overview', requirePermission('reports.read'), aw(async (req: any, res: any) => {
   const filter = { tenantId: tid(req) };
-  const [tenants, plans, subscriptions, users, products, warehouses, suppliers, customers, purchases, sales, movements] = await Promise.all([Tenant.countDocuments(), Plan.countDocuments(), Subscription.countDocuments(filter), User.countDocuments(filter), Product.countDocuments(filter), Storage.countDocuments(filter), Party.countDocuments({ ...filter, type: 'supplier' }), Party.countDocuments({ ...filter, type: 'customer' }), PurchaseOrder.countDocuments(filter), Sale.countDocuments(filter), Movement.countDocuments(filter)]);
-  res.json({ data: { tenants, plans, subscriptions, users, products, warehouses, suppliers, customers, purchases, sales, movements } });
+  const [tenants, plans, subscriptions, users, products, warehouses, suppliers, customers, purchases, sales, movements, lowStock] = await Promise.all([Tenant.countDocuments(), Plan.countDocuments(), Subscription.countDocuments(filter), User.countDocuments(filter), Product.countDocuments(filter), Storage.countDocuments(filter), Party.countDocuments({ ...filter, type: 'supplier' }), Party.countDocuments({ ...filter, type: 'customer' }), PurchaseOrder.countDocuments(filter), Sale.countDocuments(filter), Movement.countDocuments(filter), lowStockAlerts(String(tid(req)))]);
+  res.json({ data: { tenants, plans, subscriptions, users, products, warehouses, suppliers, customers, purchases, sales, movements, lowStock: lowStock.length } });
 }));
