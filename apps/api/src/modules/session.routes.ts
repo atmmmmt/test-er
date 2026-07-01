@@ -1,10 +1,13 @@
 import { Router } from 'express';
 import { User } from '../models/User.js';
-import { signAccessToken, signRefreshToken, verifyAccessToken } from '../utils/tokens.js';
+import { signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken } from '../utils/tokens.js';
 import { passwordMatches } from '../utils/password.js';
 
 export const sessionRoutes = Router();
 function aw(fn: any) { return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next); }
+function payloadFromUser(user: any) {
+  return { userId: String(user._id), tenantId: String(user.tenantId), roleId: user.roleId ? String(user.roleId) : undefined, permissions: user.permissions || [] };
+}
 
 sessionRoutes.post('/login', aw(async (req: any, res: any) => {
   const { email, password } = req.body;
@@ -14,8 +17,18 @@ sessionRoutes.post('/login', aw(async (req: any, res: any) => {
   if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
   user.lastLoginAt = new Date();
   await user.save();
-  const payload = { userId: String(user._id), tenantId: String(user.tenantId), roleId: user.roleId ? String(user.roleId) : undefined, permissions: user.permissions || [] };
+  const payload = payloadFromUser(user);
   res.json({ data: { user: { id: user._id, name: user.name, email: user.email }, accessToken: signAccessToken(payload), refreshToken: signRefreshToken(payload) } });
+}));
+
+sessionRoutes.post('/refresh', aw(async (req: any, res: any) => {
+  const token = String(req.body.refreshToken || '');
+  if (!token) return res.status(401).json({ message: 'Refresh token is required' });
+  const payload = verifyRefreshToken(token);
+  const user = await User.findById(payload.userId);
+  if (!user || user.status !== 'active') return res.status(401).json({ message: 'Unauthorized' });
+  const freshPayload = payloadFromUser(user);
+  res.json({ data: { accessToken: signAccessToken(freshPayload), refreshToken: signRefreshToken(freshPayload) } });
 }));
 
 sessionRoutes.get('/me', aw(async (req: any, res: any) => {
