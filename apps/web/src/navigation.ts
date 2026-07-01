@@ -19,6 +19,7 @@ export const pageLabels: Record<string, { ar: string; en: string }> = {
   sales: { ar: 'المبيعات', en: 'Sales' },
   confirm: { ar: 'تأكيد العمليات', en: 'Confirm' },
   alerts: { ar: 'تنبيهات المخزون', en: 'Alerts' },
+  activity: { ar: 'سجل النشاطات', en: 'Activity' },
   barcode: { ar: 'الباركود', en: 'Barcode' },
   scan: { ar: 'سكان بالكاميرا', en: 'Camera Scan' },
   pwa: { ar: 'حالة التطبيق', en: 'PWA Status' },
