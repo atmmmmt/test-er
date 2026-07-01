@@ -29,10 +29,15 @@ PORT=5000
 MONGO_URI=your_mongodb_uri
 JWT_ACCESS_SECRET=change_me_long_secret
 JWT_REFRESH_SECRET=change_me_long_secret
+ALLOW_SEED=false
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ```
+
+## Seed safety
+
+Seed endpoints are disabled in production by default. Use `ALLOW_SEED=true` only for a temporary demo setup, then turn it off again.
 
 ## Render backend deploy
 
@@ -45,6 +50,7 @@ MONGO_URI=your_mongodb_uri
 JWT_ACCESS_SECRET=change_me_long_secret
 JWT_REFRESH_SECRET=change_me_long_secret
 WEB_URL=https://your-frontend-domain.com
+ALLOW_SEED=false
 ```
 
 Build command:
