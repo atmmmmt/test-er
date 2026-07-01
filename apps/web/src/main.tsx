@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Shell } from './Shell';
+import { registerPwa } from './pwaRegister';
 import './styles.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -8,3 +9,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <Shell />
   </React.StrictMode>
 );
+
+registerPwa();
