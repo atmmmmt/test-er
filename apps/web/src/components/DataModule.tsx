@@ -43,7 +43,7 @@ export function DataModule({ title, endpoint, fields }: { title: string; endpoin
     <section className="panel glass">
       <h2>{title}</h2>
       <form className="form" onSubmit={submit}>
-        {fields.map((field) => <input className="input" key={field} placeholder={field} value={form[field] || ''} onChange={(e) => setForm((old) => ({ ...old, [field]: e.target.value }))} />)}
+        {fields.map((field) => <input className="input" type={field.toLowerCase().includes('password') ? 'password' : 'text'} key={field} placeholder={field} value={form[field] || ''} onChange={(e) => setForm((old) => ({ ...old, [field]: e.target.value }))} />)}
         <button className="primary">Save</button>
       </form>
       {message && <p className="muted">{message}</p>}
