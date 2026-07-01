@@ -28,6 +28,7 @@ import { BarcodePage } from './pages/BarcodePage';
 import { ScanPage } from './pages/ScanPage';
 import { PwaStatusPage } from './pages/PwaStatusPage';
 import { ToastHost } from './ui/ToastHost';
+import { showToast } from './ui/toast';
 
 const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'users', 'roles', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'confirm', 'alerts', 'activity', 'barcode', 'scan', 'pwa', 'movements', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
@@ -40,12 +41,18 @@ export function Shell() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
   const [page, setPage] = useState<Page>(initialPage());
   const isAr = lang === 'ar';
+  function logout() {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    setPage('login');
+    showToast('Logged out', 'info');
+  }
   document.documentElement.dir = isAr ? 'rtl' : 'ltr';
   document.documentElement.lang = lang;
   return (
     <main className="page">
       <section className="container">
-        <nav className="topbar glass"><div className="brand"><span className="mark">ERP</span><div><b>Warehouse Cloud</b><small>{isAr ? 'عربي / English' : 'English / عربي'}</small></div></div><button className="ghost" onClick={() => setLang(isAr ? 'en' : 'ar')}>{isAr ? 'English' : 'العربية'}</button></nav>
+        <nav className="topbar glass"><div className="brand"><span className="mark">ERP</span><div><b>Warehouse Cloud</b><small>{isAr ? 'عربي / English' : 'English / عربي'}</small></div></div><div className="toolbar"><button className="ghost" onClick={logout}>Logout</button><button className="ghost" onClick={() => setLang(isAr ? 'en' : 'ar')}>{isAr ? 'English' : 'العربية'}</button></div></nav>
         <header className="hero glass"><p className="eyebrow">Production SaaS ERP</p><h1>{isAr ? 'منصة إدارة مستودعات متكاملة' : 'Complete Warehouse SaaS Platform'}</h1><p className="lead">{isAr ? 'لوحة مالك المنصة، لوحة الشركة، صفحات تشغيلية، وواجهة موبايل PWA.' : 'Owner dashboard, company dashboard, operational pages, and mobile PWA.'}</p></header>
         <div className="view-switch">{pages.map((item) => <button key={item} className={page === item ? 'tab active' : 'tab'} onClick={() => setPage(item)}>{isAr ? pageLabels[item].ar : pageLabels[item].en}</button>)}</div>
         {page === 'home' && <HomePage openPage={(next) => setPage(next as Page)} />}
