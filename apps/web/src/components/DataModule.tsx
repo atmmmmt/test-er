@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import { apiGet, apiPost } from '../api/client';
+import { showToast } from '../ui/toast';
 
 export function DataModule({ title, endpoint, fields }: { title: string; endpoint: string; fields: string[] }) {
   const [items, setItems] = useState<any[]>([]);
@@ -20,16 +21,21 @@ export function DataModule({ title, endpoint, fields }: { title: string; endpoin
     e.preventDefault();
     const missing = fields.find((field) => !String(form[field] || '').trim() && !['notes', 'address', 'email'].includes(field));
     if (missing) {
-      setMessage(`${missing} is required`);
+      const text = `${missing} is required`;
+      setMessage(text);
+      showToast(text, 'error');
       return;
     }
     const result = await apiPost(endpoint, form);
     if (result.data) {
       setForm({});
       setMessage('Saved');
+      showToast(`${title} saved`, 'success');
       await load();
     } else {
-      setMessage(result.message || 'Failed');
+      const text = result.message || 'Failed';
+      setMessage(text);
+      showToast(text, 'error');
     }
   }
 
@@ -43,7 +49,7 @@ export function DataModule({ title, endpoint, fields }: { title: string; endpoin
       {message && <p className="muted">{message}</p>}
       <div className="list">
         {loading && <p className="muted">Loading...</p>}
-        {items.map((item) => <div className="row" key={item._id}><b>{item.name || item.code || item._id}</b><span className="muted">{item.createdAt || ''}</span></div>)}
+        {items.map((item) => <div className="row" key={item._id || item.id}><b>{item.name || item.code || item.email || item._id || item.id}</b><span className="muted">{item.createdAt || item.status || ''}</span></div>)}
       </div>
     </section>
   );
