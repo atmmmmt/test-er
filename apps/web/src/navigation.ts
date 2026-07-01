@@ -19,6 +19,7 @@ export const pageLabels: Record<string, { ar: string; en: string }> = {
   confirm: { ar: 'تأكيد العمليات', en: 'Confirm' },
   barcode: { ar: 'الباركود', en: 'Barcode' },
   scan: { ar: 'سكان بالكاميرا', en: 'Camera Scan' },
+  pwa: { ar: 'حالة التطبيق', en: 'PWA Status' },
   movements: { ar: 'حركات المخزون', en: 'Movements' },
   reports: { ar: 'التقارير', en: 'Reports' },
   mobile: { ar: 'تطبيق الموظف', en: 'Mobile' }
