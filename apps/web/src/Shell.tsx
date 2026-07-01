@@ -25,6 +25,7 @@ import { UsersPage } from './pages/UsersPage';
 import { BarcodePage } from './pages/BarcodePage';
 import { ScanPage } from './pages/ScanPage';
 import { PwaStatusPage } from './pages/PwaStatusPage';
+import { ToastHost } from './ui/ToastHost';
 
 const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'users', 'roles', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'confirm', 'barcode', 'scan', 'pwa', 'movements', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
@@ -71,6 +72,7 @@ export function Shell() {
         {page === 'reports' && <ReportsPage />}
         {page === 'mobile' && <MobileOperationPage />}
       </section>
+      <ToastHost />
     </main>
   );
 }
