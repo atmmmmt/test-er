@@ -21,11 +21,12 @@ import { LocalSettingsPage } from './pages/LocalSettingsPage';
 import { SeedPage } from './pages/SeedPage';
 import { ConfirmPage } from './pages/ConfirmPage';
 import { RolesPage } from './pages/RolesPage';
+import { UsersPage } from './pages/UsersPage';
 import { BarcodePage } from './pages/BarcodePage';
 import { ScanPage } from './pages/ScanPage';
 import { PwaStatusPage } from './pages/PwaStatusPage';
 
-const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'roles', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'confirm', 'barcode', 'scan', 'pwa', 'movements', 'reports', 'mobile'] as const;
+const pages = ['home', 'login', 'setup', 'settings', 'seed', 'owner', 'pricing', 'subscriptions', 'tenant', 'users', 'roles', 'products', 'categories', 'warehouses', 'suppliers', 'customers', 'orders', 'sales', 'confirm', 'barcode', 'scan', 'pwa', 'movements', 'reports', 'mobile'] as const;
 type Page = typeof pages[number];
 function initialPage(): Page {
   const value = new URLSearchParams(window.location.search).get('page') as Page | null;
@@ -53,6 +54,7 @@ export function Shell() {
         {page === 'pricing' && <OwnerPricingPage />}
         {page === 'subscriptions' && <SubscriptionsPage />}
         {page === 'tenant' && <TenantArea isAr={isAr} />}
+        {page === 'users' && <UsersPage />}
         {page === 'roles' && <RolesPage />}
         {page === 'products' && <ProductsPage />}
         {page === 'categories' && <CategoriesPage />}
