@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { User } from '../models/User.js';
-import { signAccessToken, signRefreshToken } from '../utils/tokens.js';
+import { signAccessToken, signRefreshToken, verifyAccessToken } from '../utils/tokens.js';
 import { passwordMatches } from '../utils/password.js';
 
 export const sessionRoutes = Router();
@@ -18,6 +18,12 @@ sessionRoutes.post('/login', aw(async (req: any, res: any) => {
   res.json({ data: { user: { id: user._id, name: user.name, email: user.email }, accessToken: signAccessToken(payload), refreshToken: signRefreshToken(payload) } });
 }));
 
-sessionRoutes.get('/me', (_req, res) => {
-  res.json({ data: { ready: true } });
-});
+sessionRoutes.get('/me', aw(async (req: any, res: any) => {
+  const header = String(req.headers.authorization || '');
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!token) return res.status(401).json({ message: 'Unauthorized' });
+  const payload = verifyAccessToken(token);
+  const user = await User.findById(payload.userId);
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  res.json({ data: { user: { id: user._id, name: user.name, email: user.email, tenantId: user.tenantId, roleId: user.roleId, permissions: user.permissions || [], status: user.status }, tenantId: payload.tenantId, permissions: payload.permissions || [] } });
+}));
