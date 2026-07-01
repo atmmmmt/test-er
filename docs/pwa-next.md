@@ -13,12 +13,13 @@ Implemented:
 - BarcodeDetector decoding loop
 - PWA shortcuts for mobile and barcode pages
 - Query based shortcut routing
+- Service worker file
+- Service worker registration
+- Offline queue for stock actions
+- Manual queue sync button
 
 Remaining PWA items:
 
-- Add service worker file in public folder
-- Register service worker from main entry
-- Add offline queue for stock actions
 - Add install instructions for iPhone and Android
-
-Keep service worker after build verification so the app does not break before release.
+- Verify service worker after production build
+- Verify offline queue on live HTTPS domain
