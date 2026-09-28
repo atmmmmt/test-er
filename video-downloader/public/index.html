@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Video Downloader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box} body{margin:0;font-family:Cairo,system-ui,sans-serif;background:#0b0b0e;color:#fff;min-height:100vh;display:grid;place-items:center;padding:24px}
+    .wrap{width:min(760px,100%)} .brand{font-size:15px;color:#9ca3af;margin-bottom:14px}.card{background:#15151b;border:1px solid #2a2a35;border-radius:24px;padding:28px;box-shadow:0 24px 80px rgba(0,0,0,.3)}
+    h1{font-size:32px;margin:0 0 8px} p{color:#a7a7b2;margin:0 0 22px}.row{display:flex;gap:10px}.url{flex:1;background:#0f0f14;color:#fff;border:1px solid #343440;border-radius:14px;padding:15px 16px;font:inherit;outline:none}.url:focus{border-color:#7c3aed}
+    button,select{font:inherit;border:0;border-radius:14px;padding:14px 16px}.btn{background:#7c3aed;color:#fff;font-weight:800;cursor:pointer}.btn:disabled{opacity:.5;cursor:not-allowed}select{background:#252530;color:#fff;cursor:pointer}
+    .meta{margin-top:18px;display:none;gap:14px;align-items:center;background:#0f0f14;border:1px solid #292935;border-radius:16px;padding:12px}.meta img{width:120px;height:72px;object-fit:cover;border-radius:10px}.meta .title{font-weight:700}.small{font-size:13px;color:#92929f}.actions{display:flex;gap:10px;margin-top:16px}.actions .btn{flex:1}.msg{margin-top:14px;font-size:14px;color:#b8b8c4;min-height:22px}.legal{font-size:12px;color:#747480;margin-top:16px;line-height:1.8}
+    @media(max-width:640px){.row,.actions{flex-direction:column}.card{padding:20px}h1{font-size:26px}.meta img{width:92px;height:62px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="brand">PROOTECH Video Downloader</div>
+    <section class="card">
+      <h1>حمّل الفيديو من الرابط</h1>
+      <p>الصق رابط فيديو عام من موقع مدعوم، افحصه ثم نزّله بصيغة MP4 أو MP3.</p>
+      <div class="row">
+        <input id="url" class="url" type="url" placeholder="https://example.com/video..." autocomplete="off" />
+        <button id="check" class="btn">فحص الرابط</button>
+      </div>
+
+      <div id="meta" class="meta">
+        <img id="thumb" alt="thumbnail" />
+        <div>
+          <div id="title" class="title"></div>
+          <div id="details" class="small"></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <select id="mode">
+          <option value="mp4">MP4 — فيديو</option>
+          <option value="mp3">MP3 — صوت فقط</option>
+        </select>
+        <button id="download" class="btn">تحميل</button>
+      </div>
+      <div id="msg" class="msg"></div>
+      <div class="legal">استخدم الأداة فقط لتنزيل محتوى تملكه أو لديك إذن بتنزيله. المحتوى الخاص أو المحمي بـ DRM قد لا يكون مدعومًا.</div>
+    </section>
+  </main>
+<script>
+const $ = s => document.querySelector(s);
+const url = $('#url'), check = $('#check'), download = $('#download'), msg = $('#msg');
+
+function setBusy(v, text='') { check.disabled = v; download.disabled = v; msg.textContent = text; }
+function fmt(sec){ if(!sec) return ''; const m=Math.floor(sec/60), s=Math.floor(sec%60); return `${m}:${String(s).padStart(2,'0')}`; }
+
+check.onclick = async () => {
+  const value = url.value.trim();
+  if (!value) return msg.textContent = 'حط الرابط أولاً.';
+  setBusy(true, 'عم افحص الرابط...');
+  $('#meta').style.display = 'none';
+  try {
+    const r = await fetch('/api/info', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url:value}) });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'تعذر فحص الرابط');
+    $('#title').textContent = data.title || 'Video';
+    $('#details').textContent = [data.uploader, data.duration ? fmt(data.duration) : ''].filter(Boolean).join(' • ');
+    if (data.thumbnail) { $('#thumb').src = data.thumbnail; $('#thumb').style.display='block'; } else $('#thumb').style.display='none';
+    $('#meta').style.display = 'flex';
+    msg.textContent = 'الرابط جاهز للتحميل.';
+  } catch(e) { msg.textContent = e.message; }
+  finally { check.disabled = false; download.disabled = false; }
+};
+
+download.onclick = async () => {
+  const value = url.value.trim();
+  if (!value) return msg.textContent = 'حط الرابط أولاً.';
+  setBusy(true, 'عم حضّر الملف... قد يحتاج وقت حسب حجم الفيديو.');
+  try {
+    const r = await fetch('/api/download', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url:value, mode:$('#mode').value}) });
+    if (!r.ok) {
+      const data = await r.json().catch(()=>({}));
+      throw new Error(data.error || 'فشل التحميل');
+    }
+    const blob = await r.blob();
+    const disp = r.headers.get('content-disposition') || '';
+    const match = disp.match(/filename\*?=(?:UTF-8''|\")?([^\";]+)/i);
+    const name = match ? decodeURIComponent(match[1].replace(/\"/g,'')) : ($('#mode').value === 'mp3' ? 'audio.mp3' : 'video.mp4');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+    msg.textContent = 'تم تجهيز التحميل.';
+  } catch(e) { msg.textContent = e.message; }
+  finally { check.disabled = false; download.disabled = false; }
+};
+</script>
+</body>
+</html>
