@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
+import { Readable } from 'stream';
 import ffmpegStatic from 'ffmpeg-static';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -70,10 +71,162 @@ function baseArgs() {
   return args;
 }
 
+function setDownloadHeaders(res, filename, contentType = 'application/octet-stream', contentLength = null) {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.setHeader('Content-Type', contentType);
+  res.setHeader('Content-Disposition', contentDisposition(filename));
+  if (contentLength && /^\d+$/.test(String(contentLength))) res.setHeader('Content-Length', String(contentLength));
+}
+
+function pickProgressiveFormat(data) {
+  const formats = Array.isArray(data?.formats) ? data.formats : [];
+  const candidates = formats.filter(f => {
+    const protocol = String(f.protocol || '').toLowerCase();
+    return Boolean(
+      f.url &&
+      f.vcodec && f.vcodec !== 'none' &&
+      f.acodec && f.acodec !== 'none' &&
+      !protocol.includes('m3u8') &&
+      !protocol.includes('dash')
+    );
+  });
+
+  candidates.sort((a, b) => {
+    const aMp4 = a.ext === 'mp4' ? 1 : 0;
+    const bMp4 = b.ext === 'mp4' ? 1 : 0;
+    if (aMp4 !== bMp4) return bMp4 - aMp4;
+    const ah = Number(a.height || 0), bh = Number(b.height || 0);
+    if (ah !== bh) return bh - ah;
+    return Number(b.tbr || 0) - Number(a.tbr || 0);
+  });
+
+  return candidates[0] || null;
+}
+
+async function proxyProgressive(format, data, req, res, filename) {
+  const controller = new AbortController();
+  const stop = () => controller.abort();
+  req.on('aborted', stop);
+  res.on('close', () => { if (!res.writableEnded) stop(); });
+
+  const headers = { ...(data?.http_headers || {}), ...(format?.http_headers || {}) };
+  delete headers.Host;
+  delete headers.host;
+  delete headers['Content-Length'];
+  delete headers['content-length'];
+
+  const upstream = await fetch(format.url, {
+    method: 'GET',
+    headers,
+    redirect: 'follow',
+    signal: controller.signal
+  });
+
+  if (!upstream.ok || !upstream.body) {
+    try { upstream.body?.cancel(); } catch {}
+    return false;
+  }
+
+  const type = upstream.headers.get('content-type') || (format.ext === 'mp4' ? 'video/mp4' : 'application/octet-stream');
+  const length = upstream.headers.get('content-length');
+  setDownloadHeaders(res, filename, type, length);
+
+  const nodeStream = Readable.fromWeb(upstream.body);
+  nodeStream.on('error', err => {
+    console.error('upstream stream error:', err.message);
+    if (!res.headersSent) res.status(502).end();
+    else res.destroy(err);
+  });
+  nodeStream.pipe(res);
+  return true;
+}
+
+function streamYtDlpMp4(url, req, res, filename) {
+  const child = spawn(YTDLP_PATH, [
+    ...baseArgs(),
+    '-f', 'best[ext=mp4][vcodec!=none][acodec!=none]/best[vcodec!=none][acodec!=none]',
+    '--no-part', '-o', '-', url
+  ], { windowsHide: true, shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
+
+  let stderr = '';
+  let started = false;
+  child.stderr.on('data', d => { if (stderr.length < 8000) stderr += d.toString(); });
+
+  child.stdout.once('data', chunk => {
+    if (res.destroyed) return;
+    started = true;
+    setDownloadHeaders(res, filename, 'application/octet-stream');
+    res.write(chunk);
+    child.stdout.pipe(res);
+  });
+
+  child.on('error', err => {
+    console.error('yt-dlp spawn error:', err.message);
+    if (!res.headersSent) res.status(500).send('تعذر بدء التحميل');
+    else res.destroy(err);
+  });
+
+  child.on('close', code => {
+    if (code !== 0) console.error('yt-dlp mp4 failed:', stderr.slice(-2500));
+    if (!started && !res.headersSent) {
+      res.status(400).send('تعذر تنزيل هذه الصيغة من المصدر. جرّب رابطًا عامًا آخر.');
+    } else if (code !== 0 && !res.writableEnded) {
+      res.destroy();
+    }
+  });
+
+  const stop = () => { if (!child.killed) child.kill('SIGTERM'); };
+  req.on('aborted', stop);
+  res.on('close', () => { if (!res.writableEnded) stop(); });
+}
+
+function streamMp3(url, req, res, filename) {
+  if (!ffmpegStatic) return res.status(500).send('FFmpeg غير متوفر');
+
+  const yt = spawn(YTDLP_PATH, [
+    ...baseArgs(), '-f', 'bestaudio/best', '--no-part', '-o', '-', url
+  ], { windowsHide: true, shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
+
+  const ff = spawn(ffmpegStatic, [
+    '-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', '-vn',
+    '-codec:a', 'libmp3lame', '-b:a', '192k', '-f', 'mp3', 'pipe:1'
+  ], { windowsHide: true, shell: false, stdio: ['pipe', 'pipe', 'pipe'] });
+
+  let ytErr = '', ffErr = '', started = false;
+  yt.stderr.on('data', d => { if (ytErr.length < 5000) ytErr += d.toString(); });
+  ff.stderr.on('data', d => { if (ffErr.length < 5000) ffErr += d.toString(); });
+  yt.stdout.pipe(ff.stdin);
+
+  ff.stdout.once('data', chunk => {
+    if (res.destroyed) return;
+    started = true;
+    setDownloadHeaders(res, filename, 'audio/mpeg');
+    res.write(chunk);
+    ff.stdout.pipe(res);
+  });
+
+  yt.on('error', err => { console.error('yt-dlp audio spawn error:', err.message); if (!ff.killed) ff.kill('SIGTERM'); });
+  ff.on('error', err => { console.error('ffmpeg spawn error:', err.message); if (!yt.killed) yt.kill('SIGTERM'); if (!res.headersSent) res.status(500).send('تعذر تحويل الصوت'); else res.destroy(err); });
+  yt.on('close', code => { if (code !== 0) console.error('yt-dlp audio failed:', ytErr.slice(-2000)); });
+  ff.on('close', code => {
+    if (code !== 0) console.error('ffmpeg failed:', ffErr.slice(-2000));
+    if (!started && !res.headersSent) res.status(400).send('تعذر استخراج الصوت من هذا الرابط.');
+    else if (code !== 0 && !res.writableEnded) res.destroy();
+  });
+
+  const stop = () => {
+    if (!yt.killed) yt.kill('SIGTERM');
+    if (!ff.killed) ff.kill('SIGTERM');
+  };
+  req.on('aborted', stop);
+  res.on('close', () => { if (!res.writableEnded) stop(); });
+}
+
 app.get('/api/health', async (_req, res) => {
   try {
     const result = await runYtDlp(['--version']);
-    res.json({ ok: true, ytDlp: result.stdout.trim(), ffmpeg: Boolean(ffmpegStatic), streaming: true });
+    res.json({ ok: true, ytDlp: result.stdout.trim(), ffmpeg: Boolean(ffmpegStatic), streaming: 'robust-v2' });
   } catch (err) {
     res.status(500).json({ ok: false, error: 'محرك التنزيل غير جاهز', details: String(err.message).slice(0, 300) });
   }
@@ -97,80 +250,37 @@ app.post('/api/info', async (req, res) => {
   }
 });
 
-// Fast path: stream bytes to the browser immediately instead of downloading the whole file on Render first.
-app.get('/api/download', (req, res) => {
+app.get('/api/download', async (req, res) => {
   const url = String(req.query?.url || '').trim();
   const mode = req.query?.mode === 'mp3' ? 'mp3' : 'mp4';
   const requestedName = String(req.query?.name || 'video');
   if (!validHttpUrl(url)) return res.status(400).send('الرابط غير صالح');
 
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('X-Accel-Buffering', 'no');
-
-  if (mode === 'mp4') {
-    const filename = downloadName(requestedName, 'mp4');
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', contentDisposition(filename));
-
-    // Prefer a single MP4 stream containing both video+audio. This avoids the expensive server-side merge step.
-    const child = spawn(YTDLP_PATH, [
-      ...baseArgs(),
-      '-f', 'best[ext=mp4][vcodec!=none][acodec!=none]/best[vcodec!=none][acodec!=none]',
-      '--no-part',
-      '-o', '-',
-      url
-    ], { windowsHide: true, shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
-
-    let stderr = '';
-    child.stderr.on('data', d => { if (stderr.length < 4000) stderr += d.toString(); });
-    child.on('error', err => { if (!res.headersSent) res.status(500).send('تعذر بدء التحميل'); else res.destroy(err); });
-    child.stdout.pipe(res);
-    child.on('close', code => {
-      if (code !== 0 && !res.writableEnded) {
-        console.error('yt-dlp stream failed:', stderr.slice(-1500));
-        res.destroy();
-      }
-    });
-    req.on('aborted', () => child.kill('SIGTERM'));
-    res.on('close', () => { if (!child.killed) child.kill('SIGTERM'); });
-    return;
+  if (mode === 'mp3') {
+    return streamMp3(url, req, res, downloadName(requestedName, 'mp3'));
   }
 
-  if (!ffmpegStatic) return res.status(500).send('FFmpeg غير متوفر');
-  const filename = downloadName(requestedName, 'mp3');
-  res.setHeader('Content-Type', 'audio/mpeg');
-  res.setHeader('Content-Disposition', contentDisposition(filename));
+  const filename = downloadName(requestedName, 'mp4');
 
-  // Stream source audio through ffmpeg in real time. No temporary file and no second wait.
-  const yt = spawn(YTDLP_PATH, [
-    ...baseArgs(),
-    '-f', 'bestaudio/best',
-    '--no-part',
-    '-o', '-',
-    url
-  ], { windowsHide: true, shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
+  try {
+    const { stdout } = await runYtDlp([...baseArgs(), '--dump-single-json', url]);
+    const data = JSON.parse(stdout);
+    const progressive = pickProgressiveFormat(data);
 
-  const ff = spawn(ffmpegStatic, [
-    '-hide_banner', '-loglevel', 'error',
-    '-i', 'pipe:0',
-    '-vn', '-codec:a', 'libmp3lame', '-b:a', '192k',
-    '-f', 'mp3', 'pipe:1'
-  ], { windowsHide: true, shell: false, stdio: ['pipe', 'pipe', 'pipe'] });
+    if (progressive) {
+      try {
+        const ok = await proxyProgressive(progressive, data, req, res, filename);
+        if (ok) return;
+      } catch (err) {
+        if (res.headersSent || res.destroyed) return;
+        console.error('direct progressive proxy failed, falling back:', err.message);
+      }
+    }
+  } catch (err) {
+    console.error('format lookup failed, falling back:', err.message);
+  }
 
-  let ytErr = '', ffErr = '';
-  yt.stderr.on('data', d => { if (ytErr.length < 3000) ytErr += d.toString(); });
-  ff.stderr.on('data', d => { if (ffErr.length < 3000) ffErr += d.toString(); });
-  yt.stdout.pipe(ff.stdin);
-  ff.stdout.pipe(res);
-
-  yt.on('error', err => { console.error('yt-dlp error', err); ff.kill('SIGTERM'); if (!res.headersSent) res.status(500).end(); else res.destroy(); });
-  ff.on('error', err => { console.error('ffmpeg error', err); yt.kill('SIGTERM'); if (!res.headersSent) res.status(500).end(); else res.destroy(); });
-  yt.on('close', code => { if (code !== 0) { console.error('yt-dlp audio failed:', ytErr.slice(-1200)); ff.kill('SIGTERM'); } });
-  ff.on('close', code => { if (code !== 0 && !res.writableEnded) { console.error('ffmpeg failed:', ffErr.slice(-1200)); res.destroy(); } });
-
-  const stop = () => { if (!yt.killed) yt.kill('SIGTERM'); if (!ff.killed) ff.kill('SIGTERM'); };
-  req.on('aborted', stop);
-  res.on('close', stop);
+  if (!res.headersSent && !res.destroyed) streamYtDlpMp4(url, req, res, filename);
 });
 
 app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
@@ -179,5 +289,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Video Downloader running on port ${PORT}`);
   console.log(`yt-dlp: ${YTDLP_PATH}`);
   console.log(`ffmpeg: ${ffmpegStatic || 'not found'}`);
-  console.log('download mode: streaming');
+  console.log('download mode: robust streaming v2');
 });
