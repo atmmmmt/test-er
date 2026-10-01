@@ -1,0 +1,66 @@
+name: Nawafith archive audit
+
+on:
+  push:
+    branches:
+      - nawafith-emergency-backup
+    paths:
+      - '.github/workflows/nawafith-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download existing archive artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/11179477998/zip > nawafith-full.zip
+          ls -lh nawafith-full.zip
+
+      - name: Extract database only
+        run: |
+          mkdir -p extracted
+          python - <<'PY'
+          import zipfile, os
+          z=zipfile.ZipFile('nawafith-full.zip')
+          names=z.namelist()
+          wanted=[]
+          for suffix in ('archive.sqlite3','summary.json','pages.csv','README.txt'):
+              matches=[n for n in names if n==suffix or n.endswith('/'+suffix)]
+              if matches:
+                  wanted.append(matches[0])
+          print('Extracting:', wanted)
+          for n in wanted:
+              target=os.path.join('extracted', os.path.basename(n))
+              with z.open(n) as src, open(target,'wb') as dst:
+                  while True:
+                      chunk=src.read(8*1024*1024)
+                      if not chunk: break
+                      dst.write(chunk)
+          PY
+          ls -lh extracted
+          rm -f nawafith-full.zip
+
+      - name: Audit archive
+        run: |
+          python .github/scripts/nawafith_audit.py extracted/archive.sqlite3 audit_out
+          cat audit_out/REPORT.txt
+          du -sh audit_out
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nawafith-audit-results
+          path: audit_out/
+          retention-days: 14
+          compression-level: 6
