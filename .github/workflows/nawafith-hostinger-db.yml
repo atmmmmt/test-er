@@ -46,13 +46,12 @@ jobs:
           const fzstd=require('fzstd');
           const src='../nawafith_internal.hostinger.sqlite3.zst';
           const out='../verified.sqlite3';
-          const fd=fs.openSync(out,'w'); let total=0;
-          const dec=new fzstd.Decompress(chunk=>{const b=Buffer.from(chunk.buffer,chunk.byteOffset,chunk.byteLength);fs.writeSync(fd,b);total+=b.length;});
-          const infd=fs.openSync(src,'r'); const buf=Buffer.allocUnsafe(4*1024*1024); let pos=0;
-          while(true){const n=fs.readSync(infd,buf,0,buf.length,pos); if(!n) break; pos+=n; dec.push(new Uint8Array(buf.buffer,buf.byteOffset,n),false);}
-          dec.push(new Uint8Array(0),true); fs.closeSync(infd); fs.closeSync(fd); console.log('decoded',total);
+          const compressed=fs.readFileSync(src);
+          const decoded=fzstd.decompress(compressed);
+          fs.writeFileSync(out,Buffer.from(decoded.buffer,decoded.byteOffset,decoded.byteLength));
+          console.log('decoded',decoded.byteLength);
           JS
-          node verify.js
+          node --max-old-space-size=1536 verify.js
           cd ..
           cmp nawafith_internal.sqlite3 verified.sqlite3
           sqlite3 verified.sqlite3 "select count(*) from documents; select count(*) from register_records;"
