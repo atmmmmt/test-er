@@ -1,0 +1,38 @@
+name: Nawafith public data discovery
+
+on:
+  push:
+    branches:
+      - nawafith-emergency-backup
+    paths:
+      - '.github/workflows/nawafith-discover.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests beautifulsoup4
+      - name: Inspect public corpus/API/sitemaps
+        run: python .github/scripts/nawafith_discover.py discovery_out
+      - name: Show likely endpoints
+        if: always()
+        run: |
+          sed -n '1,300p' discovery_out/hits.txt || true
+          echo '--- sitemap count ---'
+          wc -l discovery_out/sitemap_urls.txt || true
+      - name: Upload discovery report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nawafith-discovery
+          path: discovery_out/
+          retention-days: 14
