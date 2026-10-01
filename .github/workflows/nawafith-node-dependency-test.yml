@@ -39,3 +39,4 @@ jobs:
       - name: Verify real archive with Node
         working-directory: nawafith_node
         run: npm run check
+      # rerun after zstd decoder compatibility fix
