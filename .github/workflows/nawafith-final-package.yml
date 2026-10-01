@@ -1,0 +1,99 @@
+name: Nawafith final internal package
+
+on:
+  push:
+    branches:
+      - nawafith-emergency-backup
+    paths:
+      - '.github/workflows/nawafith-final-package.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install app dependencies
+        run: pip install -r nawafith_internal/requirements.txt
+
+      - name: Download internal database artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/11180452066/zip > internal-db.zip
+          mkdir -p db_artifact
+          unzip -q internal-db.zip -d db_artifact
+          rm internal-db.zip
+          ls -lh db_artifact/
+
+      - name: Test application against real archived data
+        env:
+          NAWAFITH_DB: /tmp/nawafith-real.sqlite3
+          ADMIN_USERNAME: package-test-owner
+          ADMIN_PASSWORD: package-test-password-12345
+          SECRET_KEY: package-test-secret
+        run: |
+          zstd -d -f db_artifact/nawafith_internal.sqlite3.zst -o /tmp/nawafith-real.sqlite3
+          python - <<'PY'
+          import os, sys
+          sys.path.insert(0,'nawafith_internal')
+          import app as mod
+          mod.bootstrap_owner()
+          c=mod.app.test_client()
+          assert c.get('/health').json['ok'] is True
+          with c.session_transaction() as s: s['csrf']='realtest'
+          r=c.post('/login',data={'csrf':'realtest','username':'package-test-owner','password':'package-test-password-12345'},follow_redirects=True)
+          assert r.status_code==200
+          r=c.get('/search?q=%D9%88%D8%B2%D8%A7%D8%B1%D8%A9+%D8%A7%D9%84%D9%85%D8%A7%D9%84%D9%8A%D8%A9&lang=ar')
+          assert r.status_code==200
+          assert 'وزارة المالية'.encode('utf-8') in r.data
+          print('REAL DATABASE APP TEST OK')
+          PY
+          rm -f /tmp/nawafith-real.sqlite3
+
+      - name: Build ready-to-run package
+        run: |
+          mkdir -p final/Nawafith-Internal/data
+          cp nawafith_internal/app.py final/Nawafith-Internal/
+          cp nawafith_internal/requirements.txt final/Nawafith-Internal/
+          cp nawafith_internal/Dockerfile final/Nawafith-Internal/
+          cp nawafith_internal/docker-compose.yml final/Nawafith-Internal/
+          cp nawafith_internal/entrypoint.sh final/Nawafith-Internal/
+          cp nawafith_internal/.env.example final/Nawafith-Internal/.env.example
+          cp nawafith_internal/README.md final/Nawafith-Internal/README.md
+          cp db_artifact/nawafith_internal.sqlite3.zst final/Nawafith-Internal/data/
+          cp db_artifact/SHA256SUMS.txt final/Nawafith-Internal/data/
+          cat > final/Nawafith-Internal/START_HERE.txt <<'EOF'
+          Nawafith Internal Archive
+          =========================
+          1) Copy .env.example to .env
+          2) Change ADMIN_USERNAME, ADMIN_PASSWORD and SECRET_KEY
+          3) Run: docker compose up -d --build
+          4) Open: http://127.0.0.1:8080
+
+          The database is already included as data/nawafith_internal.sqlite3.zst.
+          It is decompressed automatically on first start.
+          The default Docker Compose binding is LOCAL ONLY (127.0.0.1).
+          Do not publish the service directly to the internet without HTTPS and a private network/access layer.
+          EOF
+          find final/Nawafith-Internal -maxdepth 2 -type f -printf '%p %s bytes\n'
+
+      - name: Upload ready package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nawafith-Internal-Ready
+          path: final/Nawafith-Internal/
+          retention-days: 90
+          compression-level: 0
