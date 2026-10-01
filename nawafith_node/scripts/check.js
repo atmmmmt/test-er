@@ -1,0 +1,11 @@
+const Database = require('better-sqlite3');
+const path = require('path');
+const dbPath = path.join(__dirname, '..', 'data', 'nawafith_internal.sqlite3');
+const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+const docs = db.prepare('select count(*) n from documents').get().n;
+const regs = db.prepare('select count(*) n from register_records').get().n;
+const ar = db.prepare("select count(*) n from documents where lang='ar'").get().n;
+const hits = db.prepare("select count(*) n from documents_fts where documents_fts match ?").get('"وزارة"').n;
+console.log(JSON.stringify({ok:true, documents:docs, register_records:regs, arabic_documents:ar, ministry_hits:hits}, null, 2));
+if (docs !== 53547 || regs !== 17400 || hits < 1) process.exit(2);
+db.close();
