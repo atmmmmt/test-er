@@ -1,0 +1,68 @@
+name: Nawafith Hostinger compatible database
+
+on:
+  push:
+    branches:
+      - nawafith-emergency-backup
+    paths:
+      - '.github/workflows/nawafith-hostinger-db.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download internal database
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/11180452066/zip > db.zip
+          unzip -q db.zip -d db_artifact
+          zstd -d -f db_artifact/nawafith_internal.sqlite3.zst -o nawafith_internal.sqlite3
+          rm -rf db.zip db_artifact
+          ls -lh nawafith_internal.sqlite3
+      - name: Recompress for Node decoder compatibility
+        run: |
+          zstd -10 -T0 --zstd=wlog=23 nawafith_internal.sqlite3 -o nawafith_internal.hostinger.sqlite3.zst
+          ls -lh nawafith_internal.hostinger.sqlite3.zst
+      - name: Verify decompression with fzstd on Node 22
+        run: |
+          mkdir verify && cd verify
+          npm init -y >/dev/null
+          npm install fzstd@0.1.1 --no-audit --no-fund >/dev/null
+          cat > verify.js <<'JS'
+          const fs=require('fs');
+          const fzstd=require('fzstd');
+          const src='../nawafith_internal.hostinger.sqlite3.zst';
+          const out='../verified.sqlite3';
+          const fd=fs.openSync(out,'w'); let total=0;
+          const dec=new fzstd.Decompress(chunk=>{const b=Buffer.from(chunk.buffer,chunk.byteOffset,chunk.byteLength);fs.writeSync(fd,b);total+=b.length;});
+          const infd=fs.openSync(src,'r'); const buf=Buffer.allocUnsafe(4*1024*1024); let pos=0;
+          while(true){const n=fs.readSync(infd,buf,0,buf.length,pos); if(!n) break; pos+=n; dec.push(new Uint8Array(buf.buffer,buf.byteOffset,n),false);}
+          dec.push(new Uint8Array(0),true); fs.closeSync(infd); fs.closeSync(fd); console.log('decoded',total);
+          JS
+          node verify.js
+          cd ..
+          cmp nawafith_internal.sqlite3 verified.sqlite3
+          sqlite3 verified.sqlite3 "select count(*) from documents; select count(*) from register_records;"
+          sha256sum nawafith_internal.sqlite3 verified.sqlite3 nawafith_internal.hostinger.sqlite3.zst > SHA256SUMS.txt
+      - name: Upload compatible database
+        uses: actions/upload-artifact@v4
+        with:
+          name: nawafith-hostinger-database
+          path: |
+            nawafith_internal.hostinger.sqlite3.zst
+            SHA256SUMS.txt
+          retention-days: 90
+          compression-level: 0
