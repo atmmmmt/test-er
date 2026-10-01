@@ -1,0 +1,58 @@
+name: Nawafith emergency backup
+
+on:
+  push:
+    branches:
+      - nawafith-emergency-backup
+    paths:
+      - 'nawafith_backup/**'
+      - '.github/workflows/nawafith-emergency-backup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: nawafith_backup/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r nawafith_backup/requirements.txt
+
+      - name: Crawl all public Nawafith data
+        run: |
+          python nawafith_backup/crawler.py \
+            --output nawafith_archive \
+            --max-pages 150000 \
+            --max-runtime 17400 \
+            --delay 0.05
+
+      - name: Show archive summary
+        if: always()
+        run: |
+          test -f nawafith_archive/summary.json && cat nawafith_archive/summary.json || true
+          du -sh nawafith_archive || true
+
+      - name: Upload searchable archive
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nawafith-public-archive
+          path: nawafith_archive/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0
