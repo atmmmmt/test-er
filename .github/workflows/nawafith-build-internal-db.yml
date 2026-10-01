@@ -1,0 +1,78 @@
+name: Nawafith build internal database
+
+on:
+  push:
+    branches:
+      - nawafith-emergency-backup
+    paths:
+      - '.github/workflows/nawafith-build-internal-db.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Download existing archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/11179477998/zip > nawafith-full.zip
+          ls -lh nawafith-full.zip
+
+      - name: Extract source database only
+        run: |
+          mkdir -p source_db build_out
+          python - <<'PY'
+          import zipfile
+          z=zipfile.ZipFile('nawafith-full.zip')
+          names=z.namelist()
+          matches=[n for n in names if n=='archive.sqlite3' or n.endswith('/archive.sqlite3')]
+          if not matches:
+              raise SystemExit('archive.sqlite3 not found')
+          with z.open(matches[0]) as src, open('source_db/archive.sqlite3','wb') as dst:
+              while True:
+                  c=src.read(16*1024*1024)
+                  if not c: break
+                  dst.write(c)
+          PY
+          rm -f nawafith-full.zip
+          ls -lh source_db/archive.sqlite3
+
+      - name: Build compact internal database
+        run: |
+          python .github/scripts/build_nawafith_internal_db.py source_db/archive.sqlite3 build_out/nawafith_internal.sqlite3
+          ls -lh build_out/nawafith_internal.sqlite3
+          sqlite3 build_out/nawafith_internal.sqlite3 "select key,value from metadata order by key;"
+          sqlite3 build_out/nawafith_internal.sqlite3 "select route,count(*) from documents group by route order by count(*) desc limit 20;"
+
+      - name: Compress portable database
+        run: |
+          zstd -19 -T0 build_out/nawafith_internal.sqlite3 -o build_out/nawafith_internal.sqlite3.zst
+          sha256sum build_out/nawafith_internal.sqlite3 build_out/nawafith_internal.sqlite3.zst > build_out/SHA256SUMS.txt
+          ls -lh build_out/
+
+      - name: Upload internal database
+        uses: actions/upload-artifact@v4
+        with:
+          name: nawafith-internal-database
+          path: |
+            build_out/nawafith_internal.sqlite3.zst
+            build_out/SHA256SUMS.txt
+          retention-days: 90
+          compression-level: 0
