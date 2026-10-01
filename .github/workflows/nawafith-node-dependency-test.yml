@@ -1,0 +1,41 @@
+name: Nawafith Node dependency test
+
+on:
+  push:
+    branches:
+      - nawafith-emergency-backup
+    paths:
+      - '.github/workflows/nawafith-node-dependency-test.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download real archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p nawafith_node/data
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/11180452066/zip > db.zip
+          unzip -q db.zip -d db_artifact
+          cp db_artifact/nawafith_internal.sqlite3.zst nawafith_node/data/
+          rm -rf db.zip db_artifact
+          ls -lh nawafith_node/data/
+      - name: Install Node dependencies and prepare database
+        working-directory: nawafith_node
+        run: npm install --no-audit --no-fund
+      - name: Verify real archive with Node
+        working-directory: nawafith_node
+        run: npm run check
