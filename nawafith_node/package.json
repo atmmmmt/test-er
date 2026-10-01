@@ -8,7 +8,9 @@
   "engines": { "node": ">=22 <23" },
   "scripts": {
     "start": "node server.js",
-    "check": "node scripts/check.js"
+    "check": "node scripts/check.js",
+    "postinstall": "node scripts/prepare-archive.js",
+    "prepare-archive": "node scripts/prepare-archive.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -19,6 +21,7 @@
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
     "helmet": "^8.1.0",
-    "mysql2": "^3.15.2"
+    "mysql2": "^3.15.2",
+    "fzstd": "0.1.1"
   }
 }
