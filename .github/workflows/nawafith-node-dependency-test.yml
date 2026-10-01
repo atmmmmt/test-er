@@ -23,14 +23,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Download real archive
+      - name: Download Hostinger-compatible real archive
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p nawafith_node/data
-          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/11180452066/zip > db.zip
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/11181294568/zip > db.zip
           unzip -q db.zip -d db_artifact
-          cp db_artifact/nawafith_internal.sqlite3.zst nawafith_node/data/
+          cp db_artifact/nawafith_internal.hostinger.sqlite3.zst nawafith_node/data/nawafith_internal.sqlite3.zst
           rm -rf db.zip db_artifact
           ls -lh nawafith_node/data/
       - name: Install Node dependencies and prepare database
@@ -39,4 +39,3 @@ jobs:
       - name: Verify real archive with Node
         working-directory: nawafith_node
         run: npm run check
-      # rerun after zstd decoder compatibility fix
