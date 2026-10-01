@@ -97,3 +97,4 @@ jobs:
           path: final/Nawafith-Internal/
           retention-days: 90
           compression-level: 0
+          include-hidden-files: true
