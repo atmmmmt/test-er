@@ -1,0 +1,65 @@
+name: Nawafith internal app test
+
+on:
+  push:
+    branches:
+      - nawafith-emergency-backup
+    paths:
+      - '.github/workflows/nawafith-internal-test.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r nawafith_internal/requirements.txt
+      - name: Syntax check
+        run: python -m py_compile nawafith_internal/app.py
+      - name: Smoke test login, dashboard and search
+        env:
+          NAWAFITH_DB: /tmp/nawafith-test.sqlite3
+          ADMIN_USERNAME: owner
+          ADMIN_PASSWORD: correct-horse-battery-staple
+          SECRET_KEY: test-secret-only
+        run: |
+          python - <<'PY'
+          import os, sqlite3, sys
+          p=os.environ['NAWAFITH_DB']
+          con=sqlite3.connect(p)
+          con.executescript('''
+          CREATE TABLE documents(id INTEGER PRIMARY KEY,url TEXT UNIQUE,lang TEXT,route TEXT,record_type TEXT,slug TEXT,title TEXT,h1 TEXT,body_text TEXT,size_bytes INTEGER,fetched_at TEXT);
+          CREATE VIRTUAL TABLE documents_fts USING fts5(title,h1,body_text,content='documents',content_rowid='id',tokenize='unicode61 remove_diacritics 2');
+          CREATE TABLE register_records(id INTEGER PRIMARY KEY,year_month TEXT,kind TEXT,title_ar TEXT,title_en TEXT,record_date TEXT,issuer_ar TEXT,issuer_en TEXT,governorate TEXT,detail_ar TEXT,detail_en TEXT,raw_json TEXT);
+          CREATE VIRTUAL TABLE register_fts USING fts5(title_ar,title_en,issuer_ar,issuer_en,detail_ar,detail_en,content='register_records',content_rowid='id',tokenize='unicode61 remove_diacritics 2');
+          CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT);
+          CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT UNIQUE NOT NULL,password_hash TEXT NOT NULL,role TEXT NOT NULL,active INTEGER NOT NULL DEFAULT 1,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+          CREATE TABLE audit_log(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER,action TEXT NOT NULL,detail TEXT,ip TEXT,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+          INSERT INTO documents VALUES(1,'https://gov.nawafith.net/ar/decrees/test','ar','decrees','decree','test','قرار تجريبي','قرار رقم 1','هذا نص قرار تجريبي للبحث الداخلي',100,'2026-10-01');
+          INSERT INTO documents_fts(documents_fts) VALUES('rebuild');
+          INSERT INTO register_records VALUES(1,'2026-01','decree','سجل قرار تجريبي','Test decree','2026-01-01','وزارة تجريبية','Test ministry','','تفاصيل السجل التجريبي','Test detail','{}');
+          INSERT INTO register_fts(register_fts) VALUES('rebuild');
+          INSERT INTO metadata VALUES('documents','1');
+          INSERT INTO metadata VALUES('register_records','1');
+          ''')
+          con.commit(); con.close()
+          sys.path.insert(0,'nawafith_internal')
+          import app as mod
+          mod.bootstrap_owner()
+          c=mod.app.test_client()
+          assert c.get('/health').status_code==200
+          with c.session_transaction() as s: s['csrf']='abc'
+          r=c.post('/login',data={'csrf':'abc','username':'owner','password':'correct-horse-battery-staple'},follow_redirects=True)
+          assert r.status_code==200 and 'الأرشيف الداخلي'.encode() in r.data
+          r=c.get('/search?q=قرار&lang=ar')
+          assert r.status_code==200 and 'قرار تجريبي'.encode() in r.data
+          r=c.get('/users')
+          assert r.status_code==200 and 'المستخدمون والصلاحيات'.encode() in r.data
+          print('SMOKE TEST OK')
+          PY
