@@ -1,0 +1,39 @@
+name: Nawafith structured public backup
+
+on:
+  push:
+    branches:
+      - nawafith-emergency-backup
+    paths:
+      - '.github/workflows/nawafith-structured-backup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  structured:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests
+      - name: Backup public structured JSON layer
+        run: python .github/scripts/nawafith_structured_backup.py nawafith_structured
+      - name: Show summary
+        if: always()
+        run: |
+          cat nawafith_structured/summary.json || true
+          du -sh nawafith_structured || true
+          find nawafith_structured/data -type f | wc -l || true
+      - name: Upload structured backup
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nawafith-structured-public-backup
+          path: nawafith_structured/
+          retention-days: 14
+          compression-level: 6
